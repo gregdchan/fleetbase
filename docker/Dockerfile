@@ -116,13 +116,18 @@ RUN su www-data -s /bin/sh -c "composer install --no-scripts --optimize-autoload
 COPY --chown=www-data:www-data ./api /fleetbase/api
 
 # Patch Fleetbase migrations: MySQL 8 requires referenced FK columns to be PRIMARY/UNIQUE.
-# Upstream migrations use ->index() (non-unique) which is rejected.
+# Upstream uses ->index() (non-unique) which is rejected. Convert to ->unique()/->primary().
+# Also strip explicit `$table->unique(['uuid']);` lines which would now duplicate the inline unique.
 RUN find /fleetbase/api/vendor/fleetbase -path '*/migrations/*' -name '*.php' \
     -exec sed -i \
       -e "s/\$table->uuid('id')->index();/\$table->uuid('id')->primary();/g" \
       -e "s/\$table->uuid('uuid')->index();/\$table->uuid('uuid')->unique();/g" \
       -e "s/\$table->uuid('uuid')->nullable()->index();/\$table->uuid('uuid')->nullable()->unique();/g" \
       -e "s/\$table->uuid('uuid')->nullable();/\$table->uuid('uuid')->nullable()->unique();/g" \
+      -e "s/\$table->string('uuid', *191)->index();/\$table->string('uuid', 191)->unique();/g" \
+      -e "s/\$table->string('uuid', *191)->nullable()->index();/\$table->string('uuid', 191)->nullable()->unique();/g" \
+      -e "s/\$table->string('uuid', *191)->nullable();/\$table->string('uuid', 191)->nullable()->unique();/g" \
+      -e "/^[[:space:]]*\$table->unique(\['uuid'\]);[[:space:]]*$/d" \
     {} +
 
 # Dump autoload
