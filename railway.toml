@@ -19,7 +19,7 @@ dockerfilePath = "docker/Dockerfile"
 buildCommand = "docker build -f docker/Dockerfile --target app-release ."
 
 [deploy]
-startCommand = "php artisan octane:frankenphp --max-requests=1000 --port=$PORT --host=0.0.0.0"
+startCommand = "sh -c 'php artisan octane:frankenphp --max-requests=1000 --port=${PORT:-8000} --host=0.0.0.0'"
 healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
