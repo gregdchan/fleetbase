@@ -115,6 +115,11 @@ RUN su www-data -s /bin/sh -c "composer install --no-scripts --optimize-autoload
 # Setup application
 COPY --chown=www-data:www-data ./api /fleetbase/api
 
+# Patch core-api permission migration: uuid('id')->index() → uuid('id')->primary()
+# MySQL 8 requires referenced FK column to be PRIMARY/UNIQUE; upstream uses ->index() which is non-unique.
+RUN sed -i "s/\$table->uuid('id')->index();/\$table->uuid('id')->primary();/g" \
+    /fleetbase/api/vendor/fleetbase/core-api/migrations/2023_04_25_094304_create_permissions_table.php
+
 # Dump autoload
 RUN su www-data -s /bin/sh -c "composer dumpautoload"
 
