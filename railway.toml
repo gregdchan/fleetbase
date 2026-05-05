@@ -1,0 +1,53 @@
+# Railway configuration for Fleetbase API
+# Docs: https://docs.railway.com/reference/config-as-code
+#
+# This file configures the API service. Fleetbase also needs:
+#   - MySQL 8     (add via Railway's MySQL plugin)
+#   - Redis       (add via Railway's Redis plugin)
+#   - socketcluster  (separate service, image: socketcluster/socketcluster:v17.4.0)
+#   - queue worker   (separate service using this same Dockerfile, override startCommand)
+#   - scheduler      (separate service using this same Dockerfile, override startCommand)
+#   - console        (separate service built from ./console)
+#
+# Wire them together using Railway reference variables (e.g. ${{ MySQL.DATABASE_URL }}).
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "docker/Dockerfile"
+# Build the production app stage (no ssm-parent wrapper).
+# The repo root must be the build context so ./api, ./Caddyfile, and ./docker/* are visible.
+buildCommand = "docker build -f docker/Dockerfile --target app-release ."
+
+[deploy]
+startCommand = "php artisan octane:frankenphp --max-requests=1000 --port=$PORT --host=0.0.0.0"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+numReplicas = 1
+
+# ---------------------------------------------------------------------------
+# Required environment variables (set in the Railway dashboard, not here):
+#
+#   APP_KEY                 = base64:...   (run `php artisan key:generate --show`)
+#   APP_ENV                 = production
+#   APP_URL                 = https://<your-railway-domain>
+#   DATABASE_URL            = ${{ MySQL.MYSQL_URL }}
+#   REDIS_URL               = ${{ Redis.REDIS_URL }}
+#   CACHE_URL               = ${{ Redis.REDIS_URL }}
+#   QUEUE_CONNECTION        = redis
+#   CACHE_DRIVER            = redis
+#   BROADCAST_DRIVER        = socketcluster
+#   SOCKETCLUSTER_HOST      = <socket service host>
+#   SOCKETCLUSTER_PORT      = 8000
+#   SESSION_DOMAIN          = <your domain>
+#   MAIL_FROM_NAME          = Fleetbase
+#   APP_NAME                = Fleetbase
+#   LOG_CHANNEL             = stdout
+#   REGISTRY_HOST           = https://registry.fleetbase.io
+#   OSRM_HOST               = https://router.project-osrm.org
+# ---------------------------------------------------------------------------
+
+# Per-environment overrides (optional). Example:
+# [environments.production.deploy]
+# numReplicas = 2
