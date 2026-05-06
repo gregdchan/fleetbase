@@ -20,11 +20,13 @@
     "require": {
         "php": ">=8.0 <=8.2.30",
         "appstract/laravel-opcache": "^4.0",
-        "fleetbase/core-api": "^1.6.44",
-        "fleetbase/fleetops-api": "^0.6.45",
+        "fleetbase/core-api": "^1.6.45",
+        "fleetbase/fleetops-api": "^0.6.46",
         "fleetbase/registry-bridge": "^0.1.9",
         "fleetbase/storefront-api": "^0.4.14",
         "fleetbase/ledger-api": "^0.0.3",
+        "fleetbase/valhalla-api": "^0.0.4",
+        "fleetbase/vroom-api": "^0.0.4",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^10.0",
         "laravel/octane": "^2.3",
@@ -52,7 +54,16 @@
     "repositories": [
         {
             "type": "composer",
-            "url": "https://registry.fleetbase.io"
+            "url": "https://registry.fleetbase.io",
+            "canonical": false,
+            "exclude": [
+                "fleetbase/core-api",
+                "fleetbase/fleetops-api",
+                "fleetbase/storefront-api",
+                "fleetbase/ledger-api",
+                "fleetbase/valhalla-api",
+                "fleetbase/vroom-api"
+            ]
         }
     ],
     "autoload": {
@@ -98,7 +109,7 @@
         }
     },
     "config": {
-        "secure-http": false, 
+        "secure-http": false,
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
