@@ -5,6 +5,16 @@
 .pnpm-store
 .tool-versions
 docker-compose.override.yml
+docker-compose.override.yml.bak*
+*.bak
+*.bak.*
+# Console deploy-specific config — tracked upstream but our local copies are
+# stamped with deploy URLs / hosts. We use `git update-index --skip-worktree`
+# to ignore local edits without showing a deletion in the diff. The lines
+# below are belt-and-suspenders for any future untracked variants.
+console/fleetbase.config.json
+console/environments/.env.development
+console/environments/.env.production
 npm-debug.log
 yarn-error.log
 console/public/extensions.json
