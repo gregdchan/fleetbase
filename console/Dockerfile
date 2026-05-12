@@ -20,8 +20,10 @@ COPY package.json pnpm-lock.yaml ./
 # Copy over .npmrc if applicable
 COPY .npmr[c] ./
 
-# Install global dependencies
-RUN npm install -g ember-cli pnpm 
+# Install global dependencies.
+# pnpm is pinned to v9 because pnpm 10+ requires Node 22.13+ and this
+# Dockerfile is on node:18.15.0-alpine. Unpinned `pnpm` breaks the build.
+RUN npm install -g ember-cli pnpm@9
 
 # Install git
 RUN apk update && apk add git openssh-client
