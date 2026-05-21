@@ -1,78 +1,107 @@
-> v0.7.38 ~ "Provider-agnostic maps, UI polish, and data-model hardening"
+> v0.7.41 ~ "Live operations intelligence, dashboard reliability, and orchestrator allocation control"
 ---
 ## ✨ Highlights
-This release focuses on the new provider-agnostic mapping work in FleetOps, foundational UI improvements in Ember UI, data-layer hardening in FleetOps Data, and expanded default platform capabilities through bundled routing extensions. Together these changes make the map stack more flexible, improve large resource workflows across desktop browsers, tighten the model/serializer behavior used by maintenance, orders, and upcoming recurring scheduling flows, and ship VROOM and Valhalla pre-installed with Fleetbase by default.
+This release focuses on FleetOps `0.6.49` and Ember UI `0.3.30`. It adds a new FleetOps dashboard widget suite backed by metric and analytics endpoints, sharpens live operations visibility with richer map context, operational alerts, and native telematics providers, expands orchestrator capacity-only allocation with vehicle packing controls, and hardens dashboard widget management so system dashboards, GridStack layouts, and default widgets behave reliably.
 
 ---
 ## 📦 Component Versions
-- `fleetops`: `0.6.46`
-- `fleetops-data`: `0.1.31`
-- `ember-ui`: `0.3.29`
-- `core-api`: `1.6.45`
-- `vroom`: `0.0.4`
-- `valhalla`: `0.0.4`
-
----
-## 🧩 Default Extensions
-- Fleetbase now ships the `vroom` and `valhalla` extensions as default pre-installed extensions.
-- `vroom` provides built-in optimization engine support out of the box, including new admin-level defaults and organization-level override settings.
-- `valhalla` provides built-in routing and map-services support out of the box, with matching admin and organization settings surfaces for default configuration and per-organization overrides.
+- `fleetops`: `0.6.49`
+- `ember-ui`: `0.3.30`
+- `core-api`: `1.6.47`
 
 ---
 ## 🚚 FleetOps
-### Provider-agnostic map architecture
-- Added a system-level default map provider flow so platform admins can define the default provider once and organizations can still override it in their own settings.
-- Expanded the FleetOps admin map settings UI to manage provider selection alongside provider-specific settings.
-- Continued the provider-agnostic live map work so FleetOps can switch more cleanly between Google Maps and Leaflet without route/view logic being tightly coupled to one provider.
+### FleetOps dashboard widgets
+- Added a new FleetOps dashboard widget suite with individual KPI tiles, analytics panels, and a live fleet map widget.
+- Added KPI tile widgets for Earnings, Average Order Value, Distance Travelled, Active Orders, Drivers Online, and Open Issues, all backed by per-slug metric endpoints.
+- Added analytics widgets for Operations Pulse, Revenue Trend, Order Volume by Status, On-Time Delivery, Top Drivers, Fuel Cost & Efficiency, Issues Insights, Maintenance Overview, and Geofence Violations.
+- Added the Live Fleet Map widget for real-time driver positions and active route visibility directly on dashboards.
+- Kept the legacy Fleet-Ops Metrics widget registered for one release as `Fleet-Ops Metrics (Legacy)` while the new individual KPI widgets supersede it.
+- Added reusable `Widget::KpiTile` presentation and widget export shims so FleetOps widgets can be registered, discovered, and rendered through the shared dashboard picker.
 
-### Live map and geofence UX improvements
-- Improved Google Maps polygon labeling and hover behavior for service areas and zones so focus-mode labels and tooltips render more reliably.
-- Hardened the live-map provider handoff when moving between Orchestrator and the dashboard/live map to avoid stale provider state and map-instance reuse issues.
-- Improved route visualization and related map flows around route editing, route optimization, and mixed-stop rendering.
+### Live map, alerts, and telematics
+- Enriched live-map vehicle and driver context across Leaflet and Google map renderers with readable popovers for status, assigned driver, active order reference, coordinates, speed, heading, and contact details.
+- Added shared live-map card content utilities so Google and Leaflet renderers use a consistent display model.
+- Added company tracking-alert settings for late departures, route deviations, and prolonged stoppages.
+- Added the scheduled `fleetops:process-operational-alerts` command plus notification classes for late departure, route deviation, and prolonged stoppage alerts.
+- Persisted driver license expiry and exposed it in FleetOps driver forms, driver detail views, and API resources.
+- Added native AFAQY and Safee Tracking telematics providers to FleetOps provider discovery and configuration.
+- Added explicit testing seeders for connectivity, fleet, maintenance, network, and order fixtures under `server/seeders/Testing` so realistic FleetOps demo data stays opt-in.
 
-### Orders and payload summary improvements
-- Fixed lightweight order index payloads so pickup and dropoff can be derived from first/last waypoint markers without loading the full waypoint collection.
-- Corrected route-type summary behavior so waypoint-only orders do not misreport themselves as pickup-and-dropoff routes after lightweight payload hydration.
-- Added reusable place-address HTML utilities and helpers, plus a dedicated place-address cell component for more consistent address rendering in the UI.
+### Order tracking intelligence
+- Replaced the old monolithic `OrderTracker` internals with a provider-neutral tracking intelligence layer.
+- Added the new tracking provider domain with context builders, provider registry/manager, provider capabilities, tracking options, normalized result DTOs, and tracking stop DTOs.
+- Added built-in `google_routes`, `osrm`, and `calculated` tracking providers so FleetOps can support route-aware providers without hard-coding OSRM as the only path.
+- Added company-level tracking settings and internal endpoints for reading and saving tracking provider configuration.
+- Updated order details, route lists, overlays, lookup views, progress cards, and tracking UI components to consume the canonical nested `tracker_data` shape.
+- Added a reusable tracking stop progress component and duration formatting helper for clearer order progress display.
+- Added live order query and active live order metric improvements, including a dedicated driver ping internal API path.
 
-### Import and place-resolution hardening
-- Hardened structured place resolution during order import so explicit city, country, and coordinates remain authoritative instead of being overwritten by loose geocoder matches.
-- Improved shared-place deduplication during repeat imports so Fleetbase reuses previously created shared places instead of duplicating them unnecessarily.
-- Fixed place-resolution edge cases that could resolve underspecified addresses to the wrong country even when the import row already provided the correct structured location context.
+### Orchestrator consumable API and capacity allocation
+- Added consumable API endpoints for orchestrator run and commit flows:
+  - `POST /v1/orchestrator/run`
+  - `POST /v1/orchestrator/commit`
+- Kept VROOM configuration settings-driven while exposing public API responses that use public IDs instead of internal UUIDs or database IDs.
+- Refactored VROOM payload generation around Fleetbase route semantics so pickup/dropoff, waypoint-only, and mixed route orders stay atomic during optimization.
+- Added VROOM capacity-only allocation for users who want vehicle allocation by capacity, skills, task limits, and workload constraints without requiring vehicle locations.
+- Added VROOM vehicle packing controls for capacity-only allocation so dispatchers can minimize vehicles by default, use balanced assignment, or disable the packing bias.
+- Added fixed vehicle costs to capacity-only VROOM payloads when minimizing vehicles so VROOM prefers filling feasible vehicles before opening another vehicle.
+- Added a native FleetOps `capacity` allocation engine for deterministic capacity-only assignment without routing.
+- Moved the VROOM orchestration seeder under `server/seeders/Testing` with an explicit run command so deploy-time seeding does not auto-discover test data.
+- Added orchestrator UI controls for allocation strategy and lightweight vehicle/driver position indicators that use the existing model coordinate validity helpers.
+- Passed the full order resource into `fleet-ops:component:order:form` registry components as both `@order` and `@resource`, restoring extension access to the current order model in custom form sections.
+
+### Customer contact/user invariant
+- Enforced the FleetOps customer invariant so contacts saved as `customer` keep the linked user type aligned as `customer`.
+- Prevented existing FleetOps customer contacts from being changed away from `customer` through the internal contact save flow.
+- Added an idempotent repair migration for historical customer contacts using strong Fleet-Ops Customer role hints as repair evidence.
 
 ---
-## 🧱 FleetOps Data
-### Model coverage and serializer correctness
-- Added the `recurring-order-schedule` model to FleetOps Data so the frontend data layer has the proper model surface ready for recurring scheduling workflows.
-- Extended the maintenance schedule model with explicit `subject_uuid`, `subject_type`, `default_assignee_uuid`, and `default_assignee_type` attributes for cleaner polymorphic state handling.
-- Fixed polymorphic embedded serialization across maintenance schedules, maintenances, work orders, orders, waypoints, and entities so serializers stop reaching for parent `*_type` attributes on child models that do not define them.
-- Resolved the maintenance schedule creation/update assertion path where related records like vehicles could trigger missing-attribute errors during embedded polymorphic serialization.
+## 🧪 Tests and Coverage
+- Added backend coverage for orchestrator consumable run/commit responses and public-ID serialization.
+- Added VROOM payload tests for route-task semantics, capacity-only request generation, vehicle packing fixed-cost behavior, assignment mapping, and unassigned order handling.
+- Added native capacity allocation tests for weight, volume, pallets, parcels, skills, task limits, and workload balancing behavior.
+- Added tracking intelligence tests, live order query tests, driver ping endpoint tests, and frontend tracking component coverage.
+- Added FleetOps integration coverage for enriched fleet listing/live-map display behavior.
+- Added backend coverage for FleetOps analytics routes and metric registry resolution.
+- Added frontend coverage for the reusable KPI tile widget loading, value, delta, and error states.
+- Added Ember UI dashboard service and widget-panel tests covering default widget identity, widget grouping, search, recommended filtering, and repeated widget badges.
 
 ---
-## 🎨 Ember UI
-### Resource actions and dropdown support
-- Added first-class dropdown action-button support across tabular layouts, panel header actions, overlays, content panels, and modal footers.
-- Improved dropdown rendering so action items can safely omit icons and use either `text` or `label`, making split-button and menu-driven workflows more reusable across apps.
-- Preserved button type styling on dropdown triggers so primary and magic action menus render consistently with the rest of the Fleetbase action system.
-
-### Table and layout polish
-- Improved the native table scroll-container behavior to better support horizontal resource-table scrolling across browsers and layouts.
-- Refined floating pagination behavior for card-grid layouts so large resource sets behave more consistently with tabular layouts.
-- Polished shared layout/action surfaces used by FleetOps and other modules, reducing friction for richer resource actions without custom one-off UI code.
-
-### Sidebar and shell UX
-- Included the recent sidebar state and transition refinements that made hide/show behavior smoother and more intentional in the app shell.
-- Continued the underlying shell/layout cleanup that supports route-specific sidebar control and more predictable overlay/header action rendering.
+## 🧩 Ember UI
+### Dashboard widget picker and GridStack reliability
+- Reworked the dashboard widget picker into a compact overlay with sticky controls, All/Recommended/On Dashboard tabs, category grouping, search across name, description, and category, and reusable fixed-height `Dashboard::WidgetCard` cards.
+- Fixed dashboard widget identity-map collisions by storing registry slugs in `options.widget_key` instead of using them as Ember Data record IDs.
+- Locked edit/add/delete affordances on virtual system dashboards and replaced them with a create-to-customize hint to avoid backend 404s.
+- Remounted GridStack when switching dashboards so stale inline height and min-height styles do not leave empty bands between dashboards.
+- Compacted GridStack after widget removal so surrounding widgets fill the deleted widget's space.
+- Updated Ember UI CI to Node `22.x`, refreshed pnpm handling, and bumped `@fleetbase/ember-ui` to `0.3.30`.
 
 ---
 ## 🐛 Bug Fixes
-- Fixed Google Maps service-area and zone label rendering regressions introduced during the provider abstraction work.
-- Fixed live-map transition issues that could leave a stale map provider active after leaving Orchestrator.
-- Fixed incorrect order pickup/dropoff blanks on first table load for waypoint-driven payloads.
-- Fixed wrong-country place resolution during order import when the spreadsheet already provided structured address context.
-- Fixed duplicate shared-place creation on repeated imports of the same structured locations.
-- Fixed maintenance schedule polymorphic serialization errors caused by serializers reading `subject_type`-style attributes from related child models.
-- Fixed resource action surfaces in Ember UI that previously could not natively support dropdown-based primary actions cleanly.
+- Fixed order tracking architecture limitations that made OSRM the only first-class tracking provider.
+- Fixed active live order metric behavior and moved driver ping behavior to the internal API surface.
+- Fixed route summary stop count and tracking progress rail display issues.
+- Fixed purchase-rate component lint issues from the tracking release train.
+- Fixed live-map vehicle and driver hover content that blurred online connectivity, operational status, active order, and movement details together.
+- Fixed tracking alert repeat behavior by storing per-order notification markers under `order.meta.operational_alerts`.
+- Fixed extension form registry components receiving an undefined or stale order argument in the order form.
+- Fixed customer contacts that could be saved as FleetOps customers while their linked users remained generic users or contacts.
+- Fixed orchestrator VROOM behavior for Fleetbase payloads with pickup/dropoff only, waypoint-only routes, mixed route payloads, missing coordinates, and capacity-only allocation without vehicle positions.
+- Fixed VROOM capacity-only allocation spreading work across too many vehicles by adding an explicit vehicle packing bias.
+- Fixed dashboard widget picker usability, default widget duplication crashes, system dashboard edit actions, dashboard-switch layout residue, and widget removal gaps.
+
+---
+## 🔌 API Changes
+- Added `POST /v1/orchestrator/run` for consumable orchestration execution.
+- Added `POST /v1/orchestrator/commit` for committing public-ID orchestrator assignments.
+- Added internal tracking settings endpoints for tracking provider configuration.
+- Added internal driver ping API handling for live order tracking workflows.
+- Added `GET /fleet-ops/metrics/{slug}` for individual dashboard KPI tile metrics with period, comparison, and sparkline support.
+- Added internal FleetOps analytics endpoints for operations pulse, revenue trend, orders by status, on-time delivery, top drivers, fuel efficiency, issues insights, maintenance overview, geofence violations, and live fleet widgets.
+- Added internal settings support for operational tracking-alert configuration.
+- Added `drivers.license_expiry` persistence and resource serialization.
+- Extended live driver and vehicle index resources with richer map metadata, including current order reference and movement labels.
 
 ---
 ## 🔧 Upgrade Steps
