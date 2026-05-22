@@ -1,3 +1,8 @@
+# pnpm v9 requires the `packages:` field in every pnpm-workspace.yaml or it
+# fails with "packages field missing or empty" before doing anything else.
+# This subdir is a single-package workspace, so `.` is the only entry.
+packages:
+  - "."
 linkWorkspacePackages: deep
 preferWorkspacePackages: true
 publicHoistPattern:
