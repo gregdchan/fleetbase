@@ -21,9 +21,11 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY .npmr[c] ./
 
 # Install global dependencies.
-# pnpm is pinned to v9 because pnpm 10+ requires Node 22.13+ and this
-# Dockerfile is on node:18.15.0-alpine. Unpinned `pnpm` breaks the build.
-RUN npm install -g ember-cli pnpm@9
+# Pin pnpm to the same major as console/package.json's `packageManager`
+# field (pnpm 11). pnpm 9 doesn't recognize `overrides:` in
+# pnpm-workspace.yaml (a pnpm 10+ feature), which trips
+# ERR_PNPM_LOCKFILE_CONFIG_MISMATCH against this lockfile.
+RUN npm install -g ember-cli pnpm@11
 
 # Install git
 RUN apk update && apk add git openssh-client
