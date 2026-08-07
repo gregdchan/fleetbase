@@ -607,6 +607,18 @@ auth:
       submit-button: Parolni tiklash
       back-button: Orqaga
 
+  confirm-email-change:
+    success-message: Your email address has been updated.
+    invalid-verification-code: This email change link is invalid or expired.
+    title: Confirm email change
+    message-text: Confirm this change to update the login email for your Fleetbase account.
+    form:
+      code:
+        label: Confirmation code
+        help-text: The confirmation code from your email.
+      submit-button: Confirm Email Change
+      back-button: Back
+
 console:
   create-or-join-organization:
     modal-title: Tashkilot yaratish yoki unga qo'shilish
@@ -759,10 +771,11 @@ onboard:
       send-by-sms: SMS orqali yuborish
 
 install:
-  installer-header: O'rnatuvchi
-  failed-message-sent: O'rnatish muvaffaqiyatsiz tugadi! O'rnatishni qayta urinish uchun quyidagi tugmani bosing.
-  retry-install: Qayta o'rnatish
-  start-install: O'rnatishni boshlash
+  not-configured-title: Fleetbase is not installed or configured
+  not-configured-message: Complete setup from the Fleetbase CLI or application container, then reload this page once the database, migrations, and seed data are ready.
+  running-locally-docs: See running locally docs
+  cloud-docs: See cloud deployment docs
+  refreshing: Installation complete, refreshing...
 
 layout:
   header:

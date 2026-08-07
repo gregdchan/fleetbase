@@ -39,13 +39,13 @@ docker/database/mysql/*
 verdaccio/minio
 verdaccio/config/htpasswd
 verdaccio/storage
+docker/vroom
 # private packages
 packages/billing
 packages/flespi
 packages/loconav
 packages/internals
 packages/projectargus-engine
-packages/customer-portal
 packages/solid
 packages/aws-marketplace
 packages/countries
