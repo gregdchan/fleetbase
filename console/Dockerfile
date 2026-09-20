@@ -58,5 +58,11 @@ EXPOSE 4200
 # Use custom nginx.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Generate the runtime config from env before nginx starts. See the script
+# for why this cannot be baked in at build time.
+COPY docker-entrypoint.sh /docker-entrypoint-fleetbase.sh
+RUN chmod +x /docker-entrypoint-fleetbase.sh
+ENTRYPOINT ["/docker-entrypoint-fleetbase.sh"]
+
 # Start Nginx server
 CMD ["nginx", "-g", "daemon off;"]
