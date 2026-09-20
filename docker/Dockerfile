@@ -185,3 +185,19 @@ CMD ["sh", "-c", "php artisan octane:frankenphp --max-requests=1000 --port=8000 
 FROM base AS app
 ENTRYPOINT ["/sbin/ssm-parent", "-c", ".ssm-parent.yaml", "run", "--", "docker-php-entrypoint"]
 CMD ["sh", "-c", "php artisan octane:frankenphp --max-requests=1000 --port=8000 --host=0.0.0.0"]
+
+# ---------------------------------------------------------------------------
+# Railway target.
+#
+# Railway builds the LAST stage of a Dockerfile and offers no way to select
+# one (`serviceInstanceUpdate` exposes builder, dockerfilePath and
+# buildCommand — no target). The `app` stage above wraps the entrypoint in
+# ssm-parent, which reads config from AWS Parameter Store and dies on Railway
+# with "MissingRegion: could not find region configuration", crash-looping
+# before PHP ever starts.
+#
+# Railway injects environment variables directly, so the Parameter Store hop
+# is not just broken here, it is unnecessary. This stage exists purely so the
+# default build is the one that runs — it adds nothing and changes no other
+# stage. Docker Compose targets its stages explicitly and is unaffected.
+FROM app-release AS railway
